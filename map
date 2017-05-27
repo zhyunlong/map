@@ -1,0 +1,148 @@
+#include <iostream>
+#include <cmath>
+#include <time.h>
+
+using namespace std;
+
+#define MAX 100
+#define INFINITY  65535 
+
+typedef struct {
+	char vex[MAX];
+	int arc[MAX][MAX];
+	int vexnum, arcnum;
+}Map;
+
+void creatMap(Map *map)
+{
+	int islink=0;
+	cout << "输入顶点数" << endl;
+	cin >> map->vexnum;
+	cout << "请输入每个顶点的名字" << endl;
+	for (int i = 0;i < map->vexnum;i++)
+	{
+		cin >> map->vex[i];
+	}
+	for (int i = 0;i < map->vexnum;i++)
+	{
+		for (int j = 0;j < map->vexnum;j++)
+		{
+			map->arc[i][j] = INFINITY;
+		}
+	}//初始化
+	for (int i = 0;i < map->vexnum-1;i++)
+	{
+		islink = 0;
+		for (int j = i+1;j < map->vexnum;j++)
+		{
+			if (rand() % 2 == 0/*&&map->arc[j][i]==INFINITY*/)
+			{
+				map->arc[i][j] = rand() % 15 + 1;
+				islink = 1;
+			}
+		}
+		map->arc[i][i] = 0;
+		if (islink == 0)
+		{
+			int r;
+			r = rand() % (map->vexnum-i)+i;
+			map->arc[i][r] = rand() % 15 + 1;
+		}
+
+	}//生成带权无向图
+	map->arc[map->vexnum-1][map->vexnum-1] = 0;
+	for (int i = 0;i < map->vexnum;i++)
+	{
+		for (int j = 0;j < map->vexnum;j++)
+		{
+			cout << map->arc[i][j]<<"          ";
+		}
+		cout << endl;
+	}
+}
+
+void printMap(Map *map)
+{
+	int l,m;
+	for (int i = 0;i < map->vexnum;i++)
+	{
+		cout << map->vex[i];
+		for (int j = 0;j < map->vexnum;j++)
+		{
+			if (map->arc[i][j] != INFINITY&&map->arc[i][j] != 0)
+				cout << "->" <<"("<<map->arc[i][j]<<")"<< map->vex[j] ;
+			if (map->arc[j][i] != INFINITY&&map->arc[j][i] != 0)
+				cout << "->" << "(" << map->arc[j][i] << ")" << map->vex[j];
+		}
+		cout << endl;
+	}
+}
+
+void shortestpath_dj(Map *map,int v)
+{
+	int final[MAX],pre[MAX],flag[MAX],k,min;
+	for (int i = 0;i < map->vexnum;i++)
+	{
+		final[i] = map->arc[v][i] > map->arc[i][v] ? map->arc[i][v] : map->arc[v][i];
+		pre[i] = -1;
+		flag[i] = 0;
+	}//初始化
+
+	flag[v] = 1;
+	final[v] = 0;
+
+	for (int i = 1;i < map->vexnum;i++)//遍历vexnum次 每一次更新一个点的最短路径
+	{
+		min = INFINITY;
+		for (int j = 0;j < map->vexnum;j++)
+		{
+			if (flag[j] == 0 && final[j] < min)
+			{
+				min = final[j];
+				k = j;
+			}
+		}
+		flag[k] = 1;//顶点k获得最短路径 在未求出的顶点中求得距离k最近的点
+
+
+		//顶点k求出后 更新未求出最短路径的点的最短路径和前驱顶点
+		for (int j = 0;j < map->vexnum;j++)
+		{
+			int tmp;
+			if (map->arc[k][j] == INFINITY&&map->arc[j][k] == INFINITY)
+				tmp = INFINITY;
+			else if (map->arc[k][j] != INFINITY&&map->arc[j][k] == INFINITY)
+				tmp = map->arc[k][j]+min;
+			else if (map->arc[k][j] == INFINITY&&map->arc[j][k] != INFINITY)
+				tmp = map->arc[j][k]+min;
+			if (flag[j] == 0 && tmp < final[j])
+			{
+				final[j] = tmp;
+				pre[j] = k;
+			}		
+		}
+	}
+	cout << map->vex[v] << "顶点的最短路径 " << endl;
+	for (int i = 0;i < map->vexnum;i++)
+	{
+		cout << "(" << map->vex[v] << map->vex[i] << ")" <<final[i] <<endl;
+	}
+}
+
+void shortestpath_floyd(Map *map)
+{
+
+}
+
+int main()
+{
+	srand(time(0));
+	Map *map;
+	map = (Map*)new Map;
+	creatMap(map);
+	printMap(map);
+	shortestpath_dj(map,1);
+	
+}
+
+
